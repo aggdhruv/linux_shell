@@ -59,12 +59,12 @@ void exitExecute() {
 }
 
 void helpExecute() {
-  printf("[optionalSpace]cd[optionalSpace]\n");
-  printf("[optionalSpace]cd[oneOrMoreSpace]dir[optionalSpace]\n");
-  printf("[optionalSpace]pwd[optionalSpace]\n");
-  printf("[optionalSpace]wait[optionalSpace]\n");
-  printf("[optionalSpace]exit[optionalSpace]\n");
-  printf("[optionalSpace]help[optionalSpace]\n");
+  printf("cd\n");
+  printf("cd dir\n");
+  printf("pwd\n");
+  printf("wait\n");
+  printf("exit\n");
+  printf("help\n");
 }
 
 char ** processString(char* command) {
