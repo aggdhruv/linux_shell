@@ -59,8 +59,12 @@ void exitExecute() {
 }
 
 void helpExecute() {
-  printf("The built in commands in the shell are:\n");
-  printf("cd \npwd \nwait \nexit \nhelp\n");
+  printf("[optionalSpace]cd[optionalSpace]\n");
+  printf("[optionalSpace]cd[oneOrMoreSpace]dir[optionalSpace]\n");
+  printf("[optionalSpace]pwd[optionalSpace]\n");
+  printf("[optionalSpace]wait[optionalSpace]\n");
+  printf("[optionalSpace]exit[optionalSpace]\n");
+  printf("[optionalSpace]help[optionalSpace]\n");
 }
 
 char ** processString(char* command) {
