@@ -13,10 +13,23 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <sys/wait.h>	
-#include <fcntl.h>
+// #include <fcntl.h>
 
 void printShellLine() {
     printf("> ");
+}
+
+void handleError() {
+  char error_message[30] = "An error has occurred\n";
+  write(STDERR_FILENO, error_message, strlen(error_message));
+}
+
+int getArgsLength(char ** args) {
+  int i=0;
+  while(args[i]!=NULL) {
+    i++;
+  }
+  return i;
 }
 
 char * getCommand() {
@@ -36,11 +49,17 @@ void cdExecute(char ** args) {
   if(args[1] == NULL) {
     char * homeDirectory;
     homeDirectory = getenv("HOME");
-    chdir(homeDirectory);
+    int status = chdir(homeDirectory);
+    if (status == -1) {
+      handleError();
+    }
   }
 
   else {
-    chdir(args[1]);
+    int status = chdir(args[1]);
+    if (status == -1) {
+      handleError();
+    }
   }
 }
 
@@ -59,12 +78,7 @@ void exitExecute() {
 }
 
 void helpExecute() {
-  printf("cd\n");
-  printf("cd dir\n");
-  printf("pwd\n");
-  printf("wait\n");
-  printf("exit\n");
-  printf("help\n");
+  printf("cd\npwd\nwait\nexit\nhelp\n");
 }
 
 char ** processString(char* command) {
@@ -117,9 +131,51 @@ int builtInCommand(char ** args) {
             return 1;
             break;
     default: return 0;
+            break;
 
   }
 
+}
+
+void startProcess(char ** args, int childStatus) {
+
+    if (childStatus == 1) {
+      pid_t p_child = fork();
+
+      if(p_child == 0) {
+        int status = execvp(args[0], args);
+        if (status == -1) {
+          handleError();
+        }
+        exit(0);
+      }
+      else if (p_child == -1) {
+        handleError();
+      }
+      else {
+        return;
+      }
+    }
+    else {
+      pid_t p_pid = fork(); 
+      if (p_pid == 0) {
+        int status = execvp(args[0], args);
+        if (status == -1) {
+          handleError();
+        }
+        // exit(0);
+      }
+
+      else if (p_pid == -1) {
+        handleError();
+        return;
+      } 
+
+      else {
+        wait(NULL); 
+        return;
+      }
+  }
 }
 
 void executeCommand(char ** args) {
@@ -133,7 +189,14 @@ void executeCommand(char ** args) {
   }
 
   else {
-    printf("Non built in command\n");
+    int arr = getArgsLength(args);
+    if(strcmp("&", args[arr-1])==0) {
+      args[arr-1] = '\0';
+      startProcess(args, 1);
+    }
+    else {
+      startProcess(args, 0);
+    }
   }
 }
 
