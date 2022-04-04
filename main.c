@@ -64,9 +64,15 @@ void cdExecute(char ** args) {
 }
 
 void pwdExecute() {
-  char * cwd;
-  cwd = malloc(sizeof(char) * 1024);
-  printf("%s \n", getcwd(cwd, 1024));
+  char cwd[512];
+  getcwd(cwd, sizeof(cwd));
+  char *cwd_w_newline = malloc(strlen(cwd) + 2);
+  char n = '\n';
+  strcpy(cwd_w_newline, cwd);
+  cwd_w_newline[strlen(cwd)] = n;
+  cwd_w_newline[strlen(cwd) + 1] = '\0';
+  write(STDOUT_FILENO, cwd_w_newline, strlen(cwd_w_newline));
+  free(cwd_w_newline);
 }
 
 void waitExecute() {
@@ -200,19 +206,45 @@ void executeCommand(char ** args) {
   }
 }
 
-int main( int argc, char ** argv ) {
-  
+void batchMode(char ** argv) {
+  FILE *file;
+  char *filename = argv[1];
+  file = fopen(filename, "r");
+
+  if (file==NULL) {
+    handleError();
+    return;
+  }
+
   char * command;
-  while(1) {
-    printShellLine();
-    command = getCommand();
-
-    if( strcmp(command, "") == 0) {
-      continue;
+  command = (char *)malloc(sizeof(char) * 1024);
+  while (fscanf(file, "%[^\n] ", command) != EOF) {
+      char ** tokens = processString(command);
+      executeCommand(tokens);
     }
+}
 
-    char ** tokens = processString(command);
-    executeCommand(tokens);
+int main( int argc, char ** argv ) {
+
+  if (argc == 2) {
+    batchMode(argv);
+  }
+
+  else {
+  
+    char * command;
+    while(1) {
+      printShellLine();
+      command = getCommand();
+
+      if( strcmp(command, "") == 0) {
+        continue;
+      }
+
+      char ** tokens = processString(command);
+      executeCommand(tokens);
+
+    }
 
   }
   return 0;
